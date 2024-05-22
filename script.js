@@ -1,55 +1,97 @@
 'use strict';
 
-// each player
-const playerOne = document.getElementById('name--0');
-const playerTwo = document.getElementById('name--1');
+// Selecting elements
+const player0El = document.querySelector('.player--0');
+const player1El = document.querySelector('.player--1');
+const score0El = document.querySelector('#score--0');
+const score1El = document.getElementById('score--1');
+const current0El = document.getElementById('current--0');
+const current1El = document.getElementById('current--1');
 
-// each players score (hard code to check)
-const playerOneTotaltScore = (document.getElementById(
-  'score--0'
-).textcontent = 12);
-const playerTwoTotaltScore = (document.getElementById(
-  'score--1'
-).textContent = 24);
-
-// each players current score
-let playerOneCurrentScore = document.getElementById('current--0');
-let playerTwoCurrentScore = document.getElementById('current--1');
-let currentScore = 0;
-
-//each button (hard coding to make sure they're selected)
-const btnNewGame = document.querySelector('.btn--new');
-const btnRollDice = document.querySelector('.btn--roll');
-const btnHoldScore = document.querySelector('.btn--hold');
-
-// calculate dice number
 const diceEl = document.querySelector('.dice');
+const btnNew = document.querySelector('.btn--new');
+const btnRoll = document.querySelector('.btn--roll');
+const btnHold = document.querySelector('.btn--hold');
 
-// to show the number of dice make a function to select the number for the png
+let scores, currentScore, activePlayer, playing;
 
-// WHAT DO WE WANT THE USER TO BE ABLE TO DO / INTERACT WITH
+// Starting conditions
+const init = function () {
+  scores = [0, 0];
+  currentScore = 0;
+  activePlayer = 0;
+  playing = true;
 
-// USER CAN CLICK ROLL DICE
-btnRollDice.addEventListener('click', function () {
-  let dice = Math.floor(Math.random() * 6) + 1;
-  console.log(dice);
-  diceEl.src = `dice-${dice}.png`;
-  if (dice != 1) {
-    console.log(`you rolled a ${dice}`);
-    currentScore += dice;
-    console.log(currentScore);
-    playerOneCurrentScore.textContent = currentScore;
-  } else {
-    currentScore = 0;
-    playerOneCurrentScore.textContent = currentScore;
-    console.log('turn over');
+  score0El.textContent = 0;
+  score1El.textContent = 0;
+  current0El.textContent = 0;
+  current1El.textContent = 0;
+
+  diceEl.classList.add('hidden');
+  player0El.classList.remove('player--winner');
+  player1El.classList.remove('player--winner');
+  player0El.classList.add('player--active');
+  player1El.classList.remove('player--active');
+};
+init();
+
+const switchPlayer = function () {
+  document.getElementById(`current--${activePlayer}`).textContent = 0;
+  currentScore = 0;
+  activePlayer = activePlayer === 0 ? 1 : 0;
+  player0El.classList.toggle('player--active');
+  player1El.classList.toggle('player--active');
+};
+
+// Rolling dice functionality
+btnRoll.addEventListener('click', function () {
+  if (playing) {
+    // 1. Generating a random dice roll
+    const dice = Math.trunc(Math.random() * 6) + 1;
+
+    // 2. Display dice
+    diceEl.classList.remove('hidden');
+    diceEl.src = `dice-${dice}.png`;
+
+    // 3. Check for rolled 1
+    if (dice !== 1) {
+      // Add dice to current score
+      currentScore += dice;
+      document.getElementById(`current--${activePlayer}`).textContent =
+        currentScore;
+    } else {
+      // Switch to next player
+      switchPlayer();
+    }
   }
 });
 
-//         THE CURRENT SCORE WILL GET UPDATED TO THAT NUMBER AND THEN THE NEXT ROLL
-//         IF THE ROLL IS A 1 THEN THE SCORE RESETS AND GOES TO THE OTHER PLAYERRRRRR
+btnHold.addEventListener('click', function () {
+  if (playing) {
+    // 1. Add current score to active player's score
+    scores[activePlayer] += currentScore;
+    // scores[1] = scores[1] + currentScore
 
-// USER CAN CLICK ON HOLD AND THEN THEIR CURRENT SCORE WILL BE STORED AND IT WILL SWITCH TO THE OTHER PLAYER WHILE RESETTING THE CURRENT SCORE TO 0
-// STORED SCORE += WHATEVER THE CURRENT SCORE WAS UNTIL USER REACHES 50
+    document.getElementById(`score--${activePlayer}`).textContent =
+      scores[activePlayer];
 
-// USER CAN HIT RESET AND COMPLETELY RESET THE GAME RESTORING EVERYTHING TO ZERO
+    // 2. Check if player's score is >= 100
+    if (scores[activePlayer] >= 100) {
+      // Finish the game
+      playing = false;
+      diceEl.classList.add('hidden');
+
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.add('player--winner');
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.remove('player--active');
+    } else {
+      // Switch to the next player
+      switchPlayer();
+    }
+  }
+});
+
+btnNew.addEventListener('click', init);
